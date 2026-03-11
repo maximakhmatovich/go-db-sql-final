@@ -82,46 +82,41 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 }
 
 func (s ParcelStore) SetAddress(number int, address string) error {
-	var status string
-
-	row := s.db.QueryRow("SELECT status FROM parcel WHERE number = :number",
-		sql.Named("number", number))
-
-	if err := row.Scan(&status); err != nil {
-		return err
-	}
-
-	if status != ParcelStatusRegistered {
-		return fmt.Errorf("Cannot change address for parcel %d with status %s", number, status)
-	}
-
-	_, err := s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number",
+	res, err := s.db.Exec("UPDATE parcel SET address = :address WHERE number = :number AND status = :status",
 		sql.Named("address", address),
-		sql.Named("number", number))
+		sql.Named("number", number),
+		sql.Named("status", ParcelStatusRegistered))
 	if err != nil {
 		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("Cannot change address for parcel %d: not found or invalid status", number)
 	}
 
 	return nil
 }
 
 func (s ParcelStore) Delete(number int) error {
-	var status string
-
-	row := s.db.QueryRow("SELECT status FROM parcel WHERE number = :number",
-		sql.Named("number", number))
-	if err := row.Scan(&status); err != nil {
-		return err
-	}
-
-	if status != ParcelStatusRegistered {
-		return fmt.Errorf("Cannot delete parcel %d with status %s", number, status)
-	}
-
-	_, err := s.db.Exec("DELETE FROM parcel WHERE number = :number",
-		sql.Named("number", number))
+	res, err := s.db.Exec("DELETE FROM parcel WHERE number = :number AND status = :status",
+		sql.Named("number", number),
+		sql.Named("status", ParcelStatusRegistered))
 	if err != nil {
 		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("Cannot delete parcel %d: not found or invalid status", number)
 	}
 
 	return nil
