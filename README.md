@@ -1,4 +1,4 @@
-# Yandex Practicum Go Database and SQL Sprint8 Final
+# Yandex Practicum Go Database and SQL Sprint 8 Final
 Итоговый проект обучения языку **Go**, работе с **SQL базами данных** и выполнению **SQL запросов**.
 
 ## Описание
