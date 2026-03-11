@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,14 +46,14 @@ func TestAddGetDelete(t *testing.T) {
 	// get
 	getParcel, err := store.Get(parcel.Number)
 	require.NoError(t, err)
-	require.Equal(t, parcel, getParcel)
+	assert.Equal(t, parcel, getParcel)
 
 	// delete
 	err = store.Delete(parcel.Number)
 	require.NoError(t, err)
 
 	_, err = store.Get(parcel.Number)
-	require.Equal(t, sql.ErrNoRows, err)
+	require.ErrorIs(t, sql.ErrNoRows, err)
 }
 
 // TestSetAddress проверяет обновление адреса
@@ -78,7 +79,7 @@ func TestSetAddress(t *testing.T) {
 	// check
 	getParcel, err := store.Get(parcel.Number)
 	require.NoError(t, err)
-	require.Equal(t, newAddress, getParcel.Address)
+	assert.Equal(t, newAddress, getParcel.Address)
 
 	// delete
 	err = store.Delete(parcel.Number)
@@ -110,7 +111,7 @@ func TestSetStatus(t *testing.T) {
 	// check
 	getParcel, err := store.Get(parcel.Number)
 	require.NoError(t, err)
-	require.Equal(t, newStatus, getParcel.Status)
+	assert.Equal(t, newStatus, getParcel.Status)
 
 	// delete
 	err = store.SetStatus(parcel.Number, ParcelStatusRegistered)
@@ -158,13 +159,13 @@ func TestGetByClient(t *testing.T) {
 	// get by client
 	storedParcels, err := store.GetByClient(client)
 	require.NoError(t, err)
-	require.Equal(t, len(parcels), len(storedParcels))
+	assert.Len(t, storedParcels, len(parcels))
 
 	// check
 	for _, parcel := range storedParcels {
 		expectParcel, ok := parcelMap[parcel.Number]
-		require.True(t, ok, "Посылка с идентификатором %d не найдена в parcelMap", parcel.Number)
-		require.Equal(t, expectParcel, parcel)
+		assert.True(t, ok, "Посылка с идентификатором %d не найдена в parcelMap", parcel.Number)
+		assert.Equal(t, expectParcel, parcel)
 	}
 
 	// delete
@@ -172,6 +173,6 @@ func TestGetByClient(t *testing.T) {
 		err = store.Delete(parcels[i].Number)
 		require.NoError(t, err)
 		_, err = store.Get(parcels[i].Number)
-		require.Equal(t, sql.ErrNoRows, err)
+		require.ErrorIs(t, sql.ErrNoRows, err)
 	}
 }
